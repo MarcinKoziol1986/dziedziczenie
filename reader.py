@@ -35,15 +35,22 @@ import sys
 class DataProcessor:
     def __init__(self, input_file):
         self.data = []
-        with open(input_file, 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                self.data.append(row)
+        try:
+            with open(input_file, 'r') as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    self.data.append(row)
+        except FileNotFoundError:
+            print(f"Nie znaleziono pliku: {input_file}")
+            sys.exit(1)
 
     def apply_changes(self, changes):
         for change in changes:
             x, y, value = change.split(',')
-            self.data[int(y)][int(x)] = value
+            try:
+                self.data[int(y)][int(x)] = value
+            except IndexError:
+                print(f"Nieprawidłowe współrzędne: {change}")
 
     def display_data(self):
         print(json.dumps(self.data, indent=2))
@@ -66,6 +73,10 @@ class DataProcessor:
                 pickle.dump(self.data, f)
 
 if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print("Użycie: python data_processor.py input_file output_file [changes]")
+        sys.exit(1)
+
     input_file = sys.argv[1]
     output_file = sys.argv[2]
     changes = sys.argv[3:]
